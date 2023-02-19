@@ -1,6 +1,7 @@
 package com.chahboune.ibrahim.jwtwithsessions.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -38,10 +39,13 @@ public class User implements UserDetails {
     private String email;
 
     @NotNull
+    @JsonIgnore
     private String password;
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    private Integer counter = 0;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
