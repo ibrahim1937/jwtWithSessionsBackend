@@ -31,6 +31,7 @@ public class JwtService {
     @Autowired
     private UserRepository userRepository;
 
+
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
@@ -51,8 +52,9 @@ public class JwtService {
             Map<String, Object> extraClaims,
             UserDetails userDetails
     ){
+        final String ACCESS_TOKEN_VALIDITY_SECONDS = env.getProperty("ACCESS_TOKEN_VALIDITY_SECONDS");
         Date now = new Date();
-        Date expirationTime = new Date(now.getTime() + Constants.ACCESS_TOKEN_VALIDITY_SECONDS * 1000);
+        Date expirationTime = new Date(now.getTime() + Integer.parseInt(ACCESS_TOKEN_VALIDITY_SECONDS) * 1000);
 
         return Jwts
                 .builder()
@@ -69,13 +71,15 @@ public class JwtService {
         claims.put("type", "refresh");
         claims.put("counter", userRepository.findByEmail(userDetails.getUsername()).get().getCounter());
 
+        final String REFRESH_TOKEN_VALIDITY_SECONDS = env.getProperty("REFRESH_TOKEN_VALIDITY_SECONDS");
+
         String refreshToken = Jwts
                 .builder()
                 .setClaims(claims)
                 .setId(UUID.randomUUID().toString())
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + Constants.REFRESH_TOKEN_VALIDITY_SECONDS * 1000))
+                .setExpiration(new Date(System.currentTimeMillis() + Integer.parseInt(REFRESH_TOKEN_VALIDITY_SECONDS) * 1000))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
 

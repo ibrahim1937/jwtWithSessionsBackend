@@ -36,7 +36,7 @@ public class JwtAuthentificationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
         final String jwt;
-        final String userEmail;
+        String userEmail;
         final String refreshToken;
 
 
@@ -49,28 +49,46 @@ public class JwtAuthentificationFilter extends OncePerRequestFilter {
         }
 
 
-        userEmail = jwtService.extractUsername(jwt);
-        if(userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null){
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-            if(jwtService.isTokenValid(jwt, userDetails)){
-                // log error
-                int counter = Integer.parseInt(jwtService.getClaimsFromToken(jwt).get("counter").toString());
-                if(counter == repository.findByEmail(userEmail).get().getCounter()){
-                    setUserToContext(userDetails, request);
-                }
-            } else if (!jwtService.isTokenValid(jwt,userDetails) && jwtService.isTokenValid(refreshToken,userDetails)){
-                if(jwtService.isTokenValid(refreshToken,userDetails)){
-
-                    int counter = Integer.parseInt(jwtService.getClaimsFromToken(refreshToken).get("counter").toString());
-                    if(counter == repository.findByEmail(userEmail).get().getCounter()){
+        try {
+            userEmail = jwtService.extractUsername(jwt);
+            if(userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null){
+                UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+                if(jwtService.isTokenValid(jwt, userDetails)){
+                    // log error
+                    int counter = getCounter(jwt);
+                    if(counter == getCounterInteger(userEmail)){
                         setUserToContext(userDetails, request);
-                        String newAccessToken = jwtService.generateToken(userDetails);
-                        response.setHeader("new_access_token", newAccessToken);
                     }
                 }
             }
+        } catch (Exception e) {
+            userEmail = jwtService.extractUsername(refreshToken);
+            UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+            if (jwtService.isTokenValid(refreshToken,userDetails)){
+
+
+                int counter = getCounter(refreshToken);
+
+                if(counter == getCounterInteger(userEmail)){
+                    setUserToContext(userDetails, request);
+                    String newAccessToken = jwtService.generateToken(userDetails);
+                    response.setHeader("new_access_token", newAccessToken);
+                }
+
+            }
+
         }
+
+
         filterChain.doFilter(request, response);
+    }
+
+    private Integer getCounterInteger(String userEmail) {
+        return repository.findByEmail(userEmail).get().getCounter();
+    }
+
+    private int getCounter(String refreshToken) {
+        return Integer.parseInt(jwtService.getClaimsFromToken(refreshToken).get("counter").toString());
     }
 
     private void setUserToContext(UserDetails userDetails, HttpServletRequest request) {
