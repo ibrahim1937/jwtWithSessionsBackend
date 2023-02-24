@@ -6,14 +6,15 @@ import com.chahboune.ibrahim.jwtwithsessions.dto.RegisterRequest;
 import com.chahboune.ibrahim.jwtwithsessions.model.Role;
 import com.chahboune.ibrahim.jwtwithsessions.model.User;
 import com.chahboune.ibrahim.jwtwithsessions.repository.UserRepository;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 
 @Service
 @RequiredArgsConstructor
